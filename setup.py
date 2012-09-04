@@ -11,6 +11,10 @@ setup(
     url = 'https://github.com/tlvince/periodical',
     license = 'MIT',
     classifiers = [
-        'Programming Language :: Python'
+        'Programming Language :: Python :: 2',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Office/Business',
+        'Topic :: Text Processing :: Markup :: HTML',
     ]
 )
