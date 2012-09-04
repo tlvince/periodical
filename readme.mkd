@@ -1,0 +1,13 @@
+# Periodical
+
+Create a Kindle periodical from given URL(s).
+
+## Authors
+
+Copyright 2012 Tom Vincent <http://tlvince.com/contact/>
+
+## License
+
+Released under the [MIT License][license].
+
+  [license]: http://tlvince.mit-license.org/
