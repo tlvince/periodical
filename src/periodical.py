@@ -8,14 +8,37 @@ import sys
 import logging
 import argparse
 
+from urlparse import urlparse
+
+from bs4 import BeautifulSoup
 from boilerpipe.extract import Extractor
 
-def extract(urls):
+def extract(url):
     '''Extract content from a given URL.'''
-    for url in urls:
-        extractor = Extractor(extractor="ArticleExtractor", url=url)
-        html = extractor.getHTML()
-        print(html)
+    # Using python-boilerpipe
+    extractor = Extractor(extractor="ArticleExtractor", url=url)
+    return extractor.getHTML()
+
+def format_boilerpipe(html, url):
+    '''Return a formatted version of boilerpipe's HTML output.'''
+    soup = BeautifulSoup(html)
+
+    style = soup.style.extract()
+    head = soup.new_tag('head')
+
+    title = soup.new_tag('title')
+    title.string = getattr(soup.h1, 'string', urlparse(url)[1])
+
+    meta = soup.new_tag('meta')
+    meta['http-equiv'] = 'Content-Type'
+    meta['content'] = 'text/html; charset=UTF-8'
+
+    head.append(title)
+    head.append(meta)
+    head.append(style)
+    soup.body.insert_before(head)
+
+    return soup
 
 def parse_args():
     '''Parse the command-line arguments.'''
@@ -58,7 +81,10 @@ def main():
     args = parse_args()
     logging.basicConfig(format="%(filename)s: %(levelname)s: %(message)s")
     have_depends()
-    extract(args.urls)
+
+    for url in args.urls:
+        html = extract(url)
+        formatted = format_boilerpipe(html, url)
 
 if __name__ == '__main__':
     main()
