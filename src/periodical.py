@@ -7,6 +7,11 @@ import os
 import sys
 import logging
 import argparse
+import tempfile
+import datetime
+import subprocess
+
+import yaml
 
 from urlparse import urlparse
 
@@ -16,7 +21,7 @@ from boilerpipe.extract import Extractor
 def extract(url):
     '''Extract content from a given URL.'''
     # Using python-boilerpipe
-    extractor = Extractor(extractor="ArticleExtractor", url=url)
+    extractor = Extractor(extractor='ArticleExtractor', url=url)
     return extractor.getHTML()
 
 def format_boilerpipe(html, url):
@@ -40,16 +45,57 @@ def format_boilerpipe(html, url):
 
     return soup
 
+def write_yaml(title, author, subject, out_path):
+    '''Write document YAML for kindlerb.'''
+    date = datetime.datetime.now()
+    mobi = '{0}-{1}.mobi'.format(title.lower(),
+                                 date.strftime('%Y%m%d%H%M%S'))
+    doc = {
+        'doc_uuid':     '{0}-{1}'.format(title.lower(),
+                                         date.strftime('%Y%m%d%H%M%S')),
+        'title':        '{0} {1}'.format(title, date.strftime('%Y-%m-%d')),
+        'author':       author,
+        'publisher':    author,
+        'subject':      subject,
+        'date':         date.strftime('%Y-%m-%d'),
+        'mobi_outfile': mobi,
+    }
+
+    with open(os.path.join(out_path, '_document.yml'), 'w') as out:
+        yaml.dump(doc, out)
+
+    return mobi
+
+def write_html(out_path, html, subject, count):
+    '''Generate stripped HTML file for the given URL.'''
+    section = os.path.join(out_path, 'sections', str(count))
+    os.makedirs(section)
+    html_path = os.path.join(section, '{0}.html'.format(count))
+    with open(os.path.join(section, '_section.txt'), 'w') as section_file:
+        section_file.write(subject)
+    with open(html_path, 'w') as html_file:
+        html_file.write(html.encode('utf8'))
+
 def parse_args():
     '''Parse the command-line arguments.'''
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0],
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('urls', nargs='+', help='the URL(s) to parse')
+
+    meta = parser.add_argument_group('meta', description='Periodical meta data')
+    meta.add_argument('--title', default='Periodical',
+        help='the periodical title')
+    meta.add_argument('--author', default='Tom Vincent',
+        help='the periodical author')
+    meta.add_argument('--subject', default='News',
+        help='the periodical subject')
+
     return parser.parse_args()
 
 def which(cmd):
-    '''Check if a command is in $PATH.
-    From: http://stackoverflow.com/q/377017'''
+    '''Check if a command is in $PATH
+    From: http://stackoverflow.com/q/377017
+    '''
 
     def is_exe(fpath):
         '''Helper to check if file is executable.'''
@@ -60,7 +106,7 @@ def which(cmd):
         if is_exe(cmd):
             return cmd
     else:
-        for path in os.environ["PATH"].split(os.pathsep):
+        for path in os.environ['PATH'].split(os.pathsep):
             exe_file = os.path.join(path, cmd)
             if is_exe(exe_file):
                 return exe_file
@@ -79,12 +125,22 @@ def have_depends():
 def main():
     '''Start execution of periodicals.py.'''
     args = parse_args()
-    logging.basicConfig(format="%(filename)s: %(levelname)s: %(message)s")
+    logging.basicConfig(format='%(filename)s: %(levelname)s: %(message)s',
+                        level=logging.INFO)
     have_depends()
 
-    for url in args.urls:
+    tmp = tempfile.mkdtemp()
+    mobi = write_yaml(args.title, args.author, args.subject, tmp)
+
+    for index, url in enumerate(args.urls):
         html = extract(url)
         formatted = format_boilerpipe(html, url)
+        write_html(tmp, formatted, args.subject, index)
+
+    if os.path.exists(os.path.join(tmp, 'sections', '0', '0.html')):
+        subprocess.call(['kindlerb', tmp])
+        logging.info("Periodical created at '{0}'".format(
+            os.path.join(tmp, mobi)))
 
 if __name__ == '__main__':
     main()
