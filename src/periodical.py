@@ -5,6 +5,7 @@
 
 import os
 import sys
+import shutil
 import logging
 import argparse
 import tempfile
@@ -124,6 +125,30 @@ def have_depends():
             logging.error("Dependency '{0}' not installed".format(dep))
             sys.exit(1)
 
+def extract_urls(urls, out_path, subject):
+    '''Extract html from the given list of urls.'''
+    for index, url in enumerate(urls):
+        html = extract(url)
+        formatted = format_boilerpipe(html, url)
+        write_html(out_path, formatted, subject, index)
+
+def generate(out_path):
+    '''Generate the periodical.'''
+    if os.path.exists(os.path.join(out_path, 'sections', '0', '0.html')):
+        subprocess.call(['kindlerb', out_path])
+
+def clean_up(tmp, mobi_file, outdir):
+    '''Clean temporary directory and move resulting mobi file.'''
+    mobi_path = os.path.join(tmp, mobi_file)
+    if os.path.exists(mobi_path):
+        outdir = os.path.expanduser(os.path.expandvars(outdir))
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        shutil.move(mobi_path, outdir)
+    else:
+        logging.error('periodical creation failed')
+    shutil.rmtree(tmp)
+
 def main():
     '''Start execution of periodicals.py.'''
     args = parse_args()
@@ -134,15 +159,9 @@ def main():
     tmp = tempfile.mkdtemp()
     mobi = write_yaml(args.title, args.author, args.subject, tmp)
 
-    for index, url in enumerate(args.urls):
-        html = extract(url)
-        formatted = format_boilerpipe(html, url)
-        write_html(tmp, formatted, args.subject, index)
-
-    if os.path.exists(os.path.join(tmp, 'sections', '0', '0.html')):
-        subprocess.call(['kindlerb', tmp])
-        logging.info("Periodical created at '{0}'".format(
-            os.path.join(tmp, mobi)))
+    extract_urls(args.urls, tmp, args.subject)
+    generate(tmp)
+    clean_up(tmp, mobi, args.outdir)
 
 if __name__ == '__main__':
     main()
