@@ -10,7 +10,7 @@ setup(
     author_email = 'http://tlvince.com/contact/',
     url = 'https://github.com/tlvince/periodical',
     license = 'MIT',
-    scripts = ['src/periodical.py'],
+    scripts = ['src/periodical'],
     requires = ['beautifulsoup4', 'boilerpipe', 'yaml'],
     classifiers = [
         'Programming Language :: Python :: 2',
