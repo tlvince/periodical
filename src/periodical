@@ -81,7 +81,7 @@ def parse_args():
     '''Parse the command-line arguments.'''
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0],
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('urls', nargs='+', help='the URL(s) to parse')
+    parser.add_argument('url', nargs='+', help='the URL(s) to parse')
     parser.add_argument('--outdir', default='~',
         help='directory to write mobi file')
 
