@@ -159,7 +159,7 @@ def main():
     tmp = tempfile.mkdtemp()
     mobi = write_yaml(args.title, args.author, args.subject, tmp)
 
-    extract_urls(args.urls, tmp, args.subject)
+    extract_urls(args.url, tmp, args.subject)
     generate(tmp)
     clean_up(tmp, mobi, args.outdir)
 
