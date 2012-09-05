@@ -2,6 +2,21 @@
 
 Create a Kindle periodical from given URL(s).
 
+## Install
+
+* Arch Linux [AUR Package][aur]
+
+## Usage
+
+1. Create the periodical:
+
+        periodical url [url ...]
+
+The resulting `mobi` file is generated in `~`, ready to be transferred to your
+Kindle.
+
+See `periodical -h` for further details.
+
 ## Authors
 
 Copyright 2012 Tom Vincent <http://tlvince.com/contact/>
@@ -11,3 +26,4 @@ Copyright 2012 Tom Vincent <http://tlvince.com/contact/>
 Released under the [MIT License][license].
 
   [license]: http://tlvince.mit-license.org/
+  [aur]: https://aur.archlinux.org/packages.php?ID=62531
