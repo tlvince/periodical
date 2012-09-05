@@ -81,6 +81,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0],
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('urls', nargs='+', help='the URL(s) to parse')
+    parser.add_argument('--outdir', default='~',
+        help='directory to write mobi file')
 
     meta = parser.add_argument_group('meta', description='Periodical meta data')
     meta.add_argument('--title', default='Periodical',
