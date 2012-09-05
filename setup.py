@@ -11,7 +11,7 @@ setup(
     url = 'https://github.com/tlvince/periodical',
     license = 'MIT',
     scripts = ['src/periodical.py'],
-    requires = ['beautifulsoup4', 'boilerpipe'],
+    requires = ['beautifulsoup4', 'boilerpipe', 'yaml'],
     classifiers = [
         'Programming Language :: Python :: 2',
         'Intended Audience :: End Users/Desktop',
