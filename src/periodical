@@ -15,15 +15,19 @@ import subprocess
 import yaml
 
 from urlparse import urlparse
+from urllib2 import HTTPError
 
 from bs4 import BeautifulSoup
 from boilerpipe.extract import Extractor
 
 def extract(url):
     '''Extract content from a given URL.'''
-    # Using python-boilerpipe
-    extractor = Extractor(extractor='ArticleExtractor', url=url)
-    return extractor.getHTML()
+    try:
+        # Using python-boilerpipe
+        extractor = Extractor(extractor='ArticleExtractor', url=url)
+        return extractor.getHTML()
+    except HTTPError:
+        raise
 
 def format_boilerpipe(html, url):
     '''Return a formatted version of boilerpipes HTML output.'''
@@ -67,15 +71,19 @@ def write_yaml(title, author, subject, out_path):
 
     return mobi
 
-def write_html(out_path, html, subject, count):
-    '''Generate stripped HTML file for the given URL.'''
-    section = os.path.join(out_path, 'sections', str(count))
-    os.makedirs(section)
-    html_path = os.path.join(section, '{0}.html'.format(count))
-    with open(os.path.join(section, '_section.txt'), 'w') as section_file:
-        section_file.write(subject)
+def write_article(section_path, html, count):
+    '''Create an article from the given HTML.'''
+    html_path = os.path.join(section_path, '{0}.html'.format(count))
     with open(html_path, 'w') as html_file:
         html_file.write(html.encode('utf8'))
+
+def write_section(out_path, subject, number):
+    '''Create a section with the given subject and number strings.'''
+    section = os.path.join(out_path, 'sections', number)
+    os.makedirs(section)
+    with open(os.path.join(section, '_section.txt'), 'w') as section_file:
+        section_file.write(subject)
+    return section
 
 def parse_args():
     '''Parse the command-line arguments.'''
@@ -127,10 +135,17 @@ def have_depends():
 
 def extract_urls(urls, out_path, subject):
     '''Extract html from the given list of urls.'''
+    # Write all articles to same section
+    section = write_section(out_path, subject, '0')
+
     for index, url in enumerate(urls):
-        html = extract(url)
+        try:
+            html = extract(url)
+        except HTTPError:
+            logging.error("Extraction failed for '{0}'".format(url))
+            continue
         formatted = format_boilerpipe(html, url)
-        write_html(out_path, formatted, subject, index)
+        write_article(section, formatted, index)
 
 def generate(out_path):
     '''Generate the periodical.'''
