@@ -32,23 +32,24 @@ def extract(url):
 def format_boilerpipe(html, url):
     '''Return a formatted version of boilerpipes HTML output.'''
     soup = BeautifulSoup(html)
+    if soup.body:
+        style = soup.style.extract()
+        head = soup.new_tag('head')
 
-    style = soup.style.extract()
-    head = soup.new_tag('head')
+        title = soup.new_tag('title')
+        title.string = getattr(soup.h1, 'string', urlparse(url)[1])
 
-    title = soup.new_tag('title')
-    title.string = getattr(soup.h1, 'string', urlparse(url)[1])
+        meta = soup.new_tag('meta')
+        meta['http-equiv'] = 'Content-Type'
+        meta['content'] = 'text/html; charset=UTF-8'
 
-    meta = soup.new_tag('meta')
-    meta['http-equiv'] = 'Content-Type'
-    meta['content'] = 'text/html; charset=UTF-8'
-
-    head.append(title)
-    head.append(meta)
-    head.append(style)
-    soup.body.insert_before(head)
-
-    return soup
+        head.append(title)
+        head.append(meta)
+        head.append(style)
+        soup.body.insert_before(head)
+        return soup
+    else:
+        raise AttributeError
 
 def write_yaml(title, author, subject, out_path):
     '''Write document YAML for kindlerb.'''
@@ -144,7 +145,11 @@ def extract_urls(urls, out_path, subject):
         except HTTPError:
             logging.error("Extraction failed for '{0}'".format(url))
             continue
-        formatted = format_boilerpipe(html, url)
+        try:
+            formatted = format_boilerpipe(html, url)
+        except AttributeError:
+            logging.error("Formatting failed for '{0}'".format(url))
+            continue
         write_article(section, formatted, index)
 
 def generate(out_path):
