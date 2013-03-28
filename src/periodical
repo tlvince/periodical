@@ -33,7 +33,9 @@ def format_boilerpipe(html, url):
     '''Return a formatted version of boilerpipes HTML output.'''
     soup = BeautifulSoup(html)
     if soup.body:
-        style = soup.style.extract()
+        if soup.find('head'):
+            soup.head.decompose()
+
         head = soup.new_tag('head')
 
         title = soup.new_tag('title')
@@ -45,7 +47,6 @@ def format_boilerpipe(html, url):
 
         head.append(title)
         head.append(meta)
-        head.append(style)
         soup.body.insert_before(head)
         return soup
     else:
