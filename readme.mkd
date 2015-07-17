@@ -19,7 +19,7 @@ See `periodical -h` for further details.
 
 ## Authors
 
-Copyright 2012 Tom Vincent <http://tlvince.com/contact/>
+Copyright 2012 Tom Vincent <https://tlvince.com/contact>
 
 ## License
 
